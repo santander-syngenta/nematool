@@ -1,0 +1,343 @@
+{% extends 'tool/base.html' %}
+{% load static %} 
+{% block content%}
+
+<style type="text/css">
+	.card{
+		width:90%;
+		background-color: #fff;
+		justify-content: center;
+		border: 1px solid #0066ff;
+		border-radius: 30px;
+	}
+	td {
+		white-space: nowrap;
+	}
+	td > input{
+		width: 100%; 
+    	box-sizing: border-box;
+    	-webkit-box-sizing:border-box;
+    	-moz-box-sizing: border-box;
+	}
+	tr {
+		max-width: 100%;
+	}
+	th{
+		background-color: #4e94f5;
+		text-align: center;
+		color: #fff;
+		padding:5px;
+		border: 2px solid #0066ff;
+	}
+	#plotInput{
+		width: 20%;
+	}
+	#plotNums{
+		text-align: center;
+		border: 1px;
+	}
+	tr:hover {background-color:#dae2ed !important;}
+	.select2-results{
+		background-color: black;
+	}
+	#buildTableBtn{
+		justify-content: right;
+	}
+	h4{
+		line-height: 1;
+		text-align: center;
+		text-decoration: underline;
+	}
+	p{
+		line-height: 1;
+		text-align: center;
+	}
+</style>
+<div id="html">
+	<hr>
+	<div id = "inputCard" class="card card-body mx-auto">
+		<h4>Trial Info</h4>
+		<div>
+			<div style="display: inline;">
+				<label for = "plotInput" >How many plots are in the trial?</label>
+				<input id="plotInput" type="text">
+			</div>
+			<div style="display: inline;">
+				<label for="species">What types of Nematodes were present?</label>
+				<select id="selectWorm" multiple="multiple">
+					<option>Lesion</option>
+					<option>Lance</option>
+					<option>Needle</option>
+					<option>Spiral</option>
+					<option>Stunt</option>
+					<option>Stubby-Root</option>
+					<option>Sting</option>
+					<option>Root-Knot</option>
+					<option>Ring</option>
+					<option>Dagger</option>
+				</select>
+			</div>
+			<button id='buildTableBtn' class="btn btn-info">Build Table</button>
+		</div>
+	</div>
+	<hr>
+	<form>
+		<div id="inputCard2" class="card card-body mx-auto">
+			<h4>Enter Conversion Data</h4>
+			<p>Enter the Conversion factor to Threshold Units</p>
+			<table id="convertTable">
+				
+			</table>
+		</div>
+		<hr>
+		<div class = "card card-body mx-auto">
+			<h4>Enter Nematode Counts</h4>
+			<table id = "inputTable" >
+
+			</table>
+		</div>
+		<div class="card card-body mx-auto">
+			<button id='submitTable' type="submit" class="btn btn-lg btn-success">Submit for Calculation</button>
+		</div>
+	</form>
+</div>
+<script type="text/javascript">
+	var header = ''
+	var plots = document.getElementById('plotInput');
+	var table = document.getElementById('inputTable');
+	var convertTable = document.getElementById('convertTable');
+	var buildTableBtn = document.getElementById('buildTableBtn');
+	var submitBtn = document.getElementById('submitTable');
+	var finalData = null;
+
+	buildTableBtn.addEventListener('click', function(e){
+		getHeader();
+		table.innerHTML = header;
+		convertTable.innerHTML = getConvertHeader();
+		getBody();
+		convertTable.innerHTML += getConvertBody();
+	});
+	submitBtn.addEventListener('click', function(e){
+		e.preventDefault();
+		buildOutput();
+	});
+
+	function buildOutput(){
+		finalData = addRows();
+		var page = document.getElementById('html');
+		var head = '';
+		var tbl = '';
+		for (var i=0; i<finalData.length; i++){
+			var plotNum = i + 1;
+			var value = finalData[i]; 
+			if (i===0){
+				head += `
+				<hr>
+					<div class="card card-body mx-auto">
+					<table id="outputTbl">
+					<tr>
+						<th>Plot ${plotNum}</th>
+				`
+				tbl += `
+					<tr>
+						<td>${value}</td>
+				`
+			} else {
+				if (i===finalData.length -1){
+					head += `
+							<th>Plot ${plotNum}</th>
+						</tr>
+					`
+					tbl += `
+							<td>${value}</td>
+						</tr>
+						</table>
+						</div>
+					`
+				} else {
+					head += `
+							<th>Plot ${plotNum}</th>
+					`
+					tbl += `
+							<td>${value}</td>
+					`
+				}
+			}
+		}
+		page.innerHTML+= (head+tbl);
+	}
+
+	function getHeader(){
+		header = `
+			<tr>
+				<th>Plot #</th>`
+		for (var i = 0; i<worms.length;i++){
+			if (i === (worms.length - 1)){
+				header += `
+					<th>${worms[i]}</th>
+				</tr>
+				`
+			} else{
+				header += `
+					<th>${worms[i]}</th>`
+			}
+		}
+	}
+
+	function getConvertHeader(){
+		var heading = `
+			<tr>`
+		for (var i = 0; i<worms.length;i++){
+			if (i === (worms.length - 1)){
+				heading += `
+					<th>${worms[i]}</th>
+				</tr>
+				`
+			} else{
+				heading += `
+					<th>${worms[i]}</th>`
+			}
+		}
+		return heading
+	}
+
+	function getConvertBody(){
+		var row = `
+			<tr>
+			`;
+		for (var j = 0; j<worms.length;j++){
+			if (j === (worms.length - 1)){
+				row += `
+					<td><input type="text"></input></td>
+				</tr>
+				`
+			} else {
+				row += `
+					<td><input type="text"></input></td>
+				`
+			}
+		}
+		console.log(row);
+		return row;
+	}
+
+	function getBody(){
+		for (var i = 0; i < plots.value; i++){
+			plotNum = i + 1;
+			row = `
+			<tr>
+				<td id="plotNums">${plotNum}</td> 
+			`;
+			for (var j = 0; j<worms.length;j++){
+				if (j === (worms.length - 1)){
+					row += `
+						<td><input type="text"></input></td>
+					</tr>
+					`
+				} else {
+					row += `
+						<td><input type="text"></input></td>
+					`
+				}
+			}
+			table.innerHTML += row;
+		}
+	}
+
+	function calculate(){
+		var data = getData();
+		var cnv = data[0];
+		var header = data[1];
+		var output =[];
+		for (var i=0; i<data.length;i++){
+			if (i > 1){
+				var convertedRow = [];
+				for (var j=0; j < data[i].length;j++){
+					if (j>0){
+						convertedRow.push(cnv[j-1]*data[i][j]);
+					} else {
+						convertedRow.push(data[i][j]);
+					}
+				}
+				output.push(convertedRow);
+			} else {
+				if (i===1){
+					output.push(header);
+				}
+			}
+		}
+		return output;
+	}
+
+	function addRows(){
+		var data = calculate();
+		var output = [];
+		for (var i =0; i<data.length; i++){
+			if (i > 0){
+				var sum = 0;
+				for (var j=0; j <data[i].length;j++){
+					if (j>0) {
+						sum += data[i][j];
+					}
+				}
+				output.push(sum)
+			} else{
+
+			}
+		}
+		return output;
+	}
+
+	function getData(){
+		output = []
+		convertRows = []
+		for (var x=0; x < convertTable.rows[1].cells.length; x++){
+			convertRows.push(parseInt(convertTable.rows[1].cells[x].children[0].value));
+		}
+		output.push(convertRows);
+		for (var i=0; i < table.rows.length; i++){
+			row = []
+			for (var j=0; j < table.rows[i].cells.length; j++){
+				if (i === 0){
+					row.push(table.rows[i].cells[j].innerHTML);
+				} else {
+					if (j === 0){
+						row.push(parseInt(table.rows[i].cells[j].innerHTML));
+					}
+				}
+				if (table.rows[i].cells[j].children[0] != undefined){
+					row.push(parseInt(table.rows[i].cells[j].children[0].value));
+				}
+			}
+			output.push(row);
+		}
+		return output;
+	}
+
+	var worms = [];
+	$('#selectWorm').on('select2:select', function (e) {
+    	var data = e.params.data;
+    	worms.push(data['text']);
+	});
+	$('#selectWorm').on('select2:unselect', function (e) {
+    	var data = e.params.data['text'];
+    	var output = [];
+    	for (var i = 0; i<worms.length; i++){
+    		if (data !== worms[i]){
+    			output.push(worms[i]);
+    		} else {
+
+    		}
+    	}
+    	worms = output;
+	});
+</script>
+<script type="text/javascript">
+	$(document).ready(function(){
+		$('#selectWorm').select2();
+	})
+	$('select').select2({
+    	theme: 'bootstrap4',
+	});
+</script>
+{% endblock %}
